@@ -136,7 +136,7 @@ const mostrarSesion = (sesion) => {
   nombre.textContent = "Hola, " + sesion.nombre;
   salir.onclick = async () => {
     await Sesion.cerrar();
-    location.href = "Bajo_la_sombrilla.html";
+    location.href = "index.html";
   };
 };
 

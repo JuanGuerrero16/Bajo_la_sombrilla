@@ -527,6 +527,7 @@ $("#f").onsubmit = async (e) => {
   try {
     const respuesta = await fetch(`${API_URL}/api/solicitudes`, {
       method: "POST",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         nombre: $("#n").value.trim(),
@@ -596,7 +597,7 @@ document.querySelectorAll("#mm a").forEach((link) => {
   if (!ses) return;
 
   // Si la sesión venció en el servidor, se limpia la copia local
-  fetch(`${API_URL}/api/yo`)
+  fetch(`${API_URL}/api/yo`, { credentials: "include" })
     .then((r) => r.json())
     .then((d) => {
       if (!d.usuaria) {
@@ -618,7 +619,10 @@ document.querySelectorAll("#mm a").forEach((link) => {
     e.preventDefault();
 
     try {
-      await fetch(`${API_URL}/api/logout`, { method: "POST" });
+      await fetch(`${API_URL}/api/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
     } catch (x) {
       // Aun así se limpia la sesión local.
     }

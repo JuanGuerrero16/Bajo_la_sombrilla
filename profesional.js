@@ -86,7 +86,7 @@ const mostrarSesion = (sesion) => {
 
   $("#salir").onclick = async () => {
     await Sesion.cerrar();
-    location.href = "Bajo_la_sombrilla.html";
+    location.href = "index.html";
   };
 };
 

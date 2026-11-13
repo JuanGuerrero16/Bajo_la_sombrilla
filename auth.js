@@ -73,7 +73,7 @@ const siguiente = () => {
   }
 
   // Página predeterminada.
-  return "Bajo_la_sombrilla.html";
+  return "index.html";
 };
 
 // ==========================================
