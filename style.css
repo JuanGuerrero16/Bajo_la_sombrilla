@@ -1607,6 +1607,58 @@ html:not([data-contrast="1"]) .module-hero {
   margin-top: 42px;
 }
 
+.selia-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin: 0 0 30px;
+  padding: 24px 26px;
+  border: 2px solid var(--turquesa-500);
+  border-left: 6px solid var(--turquesa-500);
+  border-radius: var(--r);
+  background: linear-gradient(135deg, var(--turquesa-50), var(--morado-50));
+  box-shadow: 0 10px 26px #21b4af1f;
+}
+
+.selia-card h3 {
+  margin: 4px 0 8px;
+}
+
+.selia-card p {
+  margin-bottom: 0;
+  max-width: 62ch;
+}
+
+.selia-card .eyebrow {
+  margin-bottom: 0;
+  color: var(--turquesa-700);
+}
+
+.selia-card .btn {
+  flex: 0 0 auto;
+}
+
+html[data-contrast="1"] .selia-card {
+  background: #000;
+  border-color: #fff;
+  box-shadow: none;
+}
+
+@media (max-width: 600px) {
+  .selia-card {
+    align-items: flex-start;
+    padding: 20px;
+  }
+
+  .selia-card .btn {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+}
+
 .lista {
   display: grid;
   gap: 18px;
