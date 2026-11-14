@@ -1062,6 +1062,7 @@ legend {
 input[type="text"],
 input[type="email"],
 input[type="password"],
+input[type="url"],
 textarea,
 select {
   width: 100%;
@@ -1081,6 +1082,7 @@ select {
 input[type="text"]:focus-visible,
 input[type="email"]:focus-visible,
 input[type="password"]:focus-visible,
+input[type="url"]:focus-visible,
 textarea:focus-visible,
 select:focus-visible {
   border-color: var(--turquesa-700);

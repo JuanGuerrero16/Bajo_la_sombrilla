@@ -20,7 +20,7 @@
     />
 
     <!-- Estilos generales -->
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="style.css?v=20261113-12" />
 
     <style>
       /* Ajustes propios del panel */
@@ -189,8 +189,22 @@
         gap: 18px;
         grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       }
-      .logro-form {
+      .logro-form,
+      .mapa-form {
         margin-bottom: 24px;
+      }
+      #panel form.mapa-form {
+        max-width: none;
+      }
+      .mapa-form .acciones {
+        margin-top: 18px;
+      }
+      .coords {
+        font-size: 0.95rem;
+      }
+      .coords a {
+        font-weight: 700;
+        color: var(--petrol);
       }
       .pro-card .estado {
         display: inline-flex;
@@ -353,6 +367,14 @@
               aria-pressed="false"
             >
               EMPLEOS
+            </button>
+            <button
+              class="btn alt"
+              type="button"
+              data-tab="mapa"
+              aria-pressed="false"
+            >
+              🗺️ MAPA
             </button>
             <button
               class="btn alt"
@@ -668,6 +690,143 @@
             <div class="lista" id="listaLogros"></div>
           </div>
 
+          <!-- Servicios del mapa -->
+          <div id="tab-mapa" hidden>
+            <p class="notice">
+              Agrega servicios al mapa público. Escribe la dirección completa y
+              la ciudad; el sistema buscará la ubicación automáticamente.
+            </p>
+
+            <form class="card admin-form mapa-form" id="fServicio" novalidate>
+              <h2 id="tituloServicio">Agregar servicio al mapa</h2>
+              <input type="hidden" id="sId" />
+
+              <div class="two-col-form">
+                <div>
+                  <label for="sNombre">Nombre del servicio</label>
+                  <input
+                    type="text"
+                    id="sNombre"
+                    maxlength="140"
+                    autocomplete="off"
+                    placeholder="Fundación, hospital, comisaría..."
+                  />
+                </div>
+                <div>
+                  <label for="sCategoria">Categoría</label>
+                  <input
+                    type="text"
+                    id="sCategoria"
+                    list="listaCategorias"
+                    maxlength="60"
+                    autocomplete="off"
+                    placeholder="Fundaciones, Salud, Empleo..."
+                  />
+                  <datalist id="listaCategorias"></datalist>
+                </div>
+              </div>
+
+              <div class="two-col-form">
+                <div>
+                  <label for="sCiudad">Ciudad</label>
+                  <input
+                    type="text"
+                    id="sCiudad"
+                    list="listaCiudades"
+                    maxlength="80"
+                    autocomplete="off"
+                    placeholder="Bogotá"
+                  />
+                  <datalist id="listaCiudades"></datalist>
+                </div>
+                <div>
+                  <label for="sDireccion">Dirección</label>
+                  <input
+                    type="text"
+                    id="sDireccion"
+                    maxlength="200"
+                    autocomplete="off"
+                    placeholder="Carrera 7 # 32-16"
+                    aria-describedby="sUbicacionAyuda"
+                  />
+                </div>
+              </div>
+
+              <div class="two-col-form">
+                <div>
+                  <label for="sTelefono">
+                    Teléfono <span class="hint">(opcional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="sTelefono"
+                    maxlength="80"
+                    autocomplete="off"
+                    placeholder="601 123 4567"
+                  />
+                </div>
+                <div>
+                  <label for="sHorario">
+                    Horario <span class="hint">(opcional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="sHorario"
+                    maxlength="140"
+                    autocomplete="off"
+                    placeholder="Lunes a viernes, 8:00 a 17:00"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label for="sDescripcion">
+                  Descripción <span class="hint">(opcional)</span>
+                </label>
+                <textarea id="sDescripcion" maxlength="400"></textarea>
+              </div>
+
+              <div>
+                <label for="sWeb">
+                  Sitio web <span class="hint">(opcional)</span>
+                </label>
+                <input
+                  type="url"
+                  id="sWeb"
+                  maxlength="300"
+                  autocomplete="off"
+                  placeholder="https://..."
+                />
+              </div>
+
+              <p class="hint" id="sUbicacionAyuda">
+                La dirección y la ciudad se usan para ubicar el servicio en el
+                mapa. Si no aparece, prueba con una dirección más completa o un
+                punto de referencia cercano.
+              </p>
+
+              <div class="err" id="eServicio" role="alert"></div>
+
+              <div class="acciones">
+                <button class="btn" type="submit" id="btnGuardarServicio">
+                  AGREGAR AL MAPA
+                </button>
+                <button
+                  class="btn alt"
+                  type="button"
+                  id="cancelarServicio"
+                  hidden
+                >
+                  CANCELAR EDICIÓN
+                </button>
+              </div>
+            </form>
+
+            <p class="ok-msg" id="servicioMsg" role="status"></p>
+
+            <div class="lista" id="listaServiciosMapa"></div>
+          </div>
+
           <!-- Ajustes -->
           <div id="tab-cfg" hidden>
             <form id="fClave" novalidate>
@@ -960,6 +1119,18 @@
        ========================================================= */
       let EST = null;
       const graficas = {};
+      let SERVICIOS_MAPA_ADMIN = [];
+
+      const CATEGORIAS_MAPA = [
+        "Fundaciones",
+        "Albergues",
+        "Salud",
+        "Empleo",
+        "Comisarías de familia",
+        "Educación",
+        "Atención psicosocial",
+        "Otro",
+      ];
 
       async function cargarEstadisticas() {
         EST = await api("/api/admin/estadisticas");
@@ -1422,6 +1593,101 @@
           : '<div class="vacio">Todavía no hay empleos registrados.</div>';
       }
 
+      async function pintarServiciosMapa() {
+        const datos = await api("/api/admin/servicios-mapa");
+        SERVICIOS_MAPA_ADMIN = datos;
+
+        $("listaServiciosMapa").innerHTML = datos.length
+          ? datos
+              .map((s) => {
+                const lat = Number(s.lat);
+                const lng = Number(s.lng);
+                const tieneCoordenadas =
+                  Number.isFinite(lat) && Number.isFinite(lng);
+                const coordenadas = tieneCoordenadas
+                  ? `${lat.toFixed(5)}, ${lng.toFixed(5)}`
+                  : "Sin coordenadas";
+                const enlace = tieneCoordenadas
+                  ? `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=17/${lat}/${lng}`
+                  : "";
+
+                return `
+            <article class="card">
+                <div class="cab">
+                    <h3>${esc(s.nombre)}</h3>
+                    <span class="etq">${esc(s.categoria)}</span>
+                </div>
+                <p><strong>Ciudad:</strong> ${esc(s.ciudad)}</p>
+                <p><strong>Dirección:</strong> ${esc(s.direccion || "")}</p>
+                ${s.telefono ? `<p><strong>Teléfono:</strong> ${esc(s.telefono)}</p>` : ""}
+                ${s.horario ? `<p><strong>Horario:</strong> ${esc(s.horario)}</p>` : ""}
+                ${s.descripcion ? `<p class="texto">${esc(s.descripcion)}</p>` : ""}
+                <p class="coords">
+                    Ubicación: ${coordenadas}
+                    ${enlace ? ` · <a href="${enlace}" target="_blank" rel="noopener">VER EN MAPA</a>` : ""}
+                </p>
+                <div class="acciones">
+                    <button class="btn sm" data-a="editarServicio" data-id="${s.id}">EDITAR</button>
+                    <button class="btn sm peligro" data-a="borrarServicio" data-id="${s.id}">ELIMINAR</button>
+                </div>
+            </article>`;
+              })
+              .join("")
+          : '<div class="vacio">Todavía no hay servicios en el mapa.</div>';
+      }
+
+      async function pintarFiltrosServicios() {
+        const filtros = await api("/api/servicios-mapa/filtros");
+
+        const categorias = [
+          ...new Set([...CATEGORIAS_MAPA, ...(filtros.categorias || [])]),
+        ].sort((a, b) => a.localeCompare(b, "es"));
+
+        const ciudades = [...new Set(filtros.ciudades || [])].sort((a, b) =>
+          a.localeCompare(b, "es"),
+        );
+
+        $("listaCategorias").innerHTML = categorias
+          .map((c) => `<option value="${esc(c)}"></option>`)
+          .join("");
+
+        $("listaCiudades").innerHTML = ciudades
+          .map((c) => `<option value="${esc(c)}"></option>`)
+          .join("");
+      }
+
+      function limpiarFormularioServicio() {
+        $("fServicio").reset();
+        $("sId").value = "";
+        $("tituloServicio").textContent = "Agregar servicio al mapa";
+        $("btnGuardarServicio").textContent = "AGREGAR AL MAPA";
+        $("cancelarServicio").hidden = true;
+        $("eServicio").textContent = "";
+      }
+
+      function editarServicioMapa(id) {
+        const s = SERVICIOS_MAPA_ADMIN.find(
+          (servicio) => String(servicio.id) === String(id),
+        );
+        if (!s) return;
+
+        $("sId").value = s.id;
+        $("sNombre").value = s.nombre || "";
+        $("sCategoria").value = s.categoria || "";
+        $("sCiudad").value = s.ciudad || "";
+        $("sDireccion").value = s.direccion || "";
+        $("sTelefono").value = s.telefono || "";
+        $("sHorario").value = s.horario || "";
+        $("sDescripcion").value = s.descripcion || "";
+        $("sWeb").value = s.web || "";
+        $("tituloServicio").textContent = "Editar servicio del mapa";
+        $("btnGuardarServicio").textContent = "GUARDAR CAMBIOS";
+        $("cancelarServicio").hidden = false;
+        $("eServicio").textContent = "";
+        $("servicioMsg").textContent = "";
+        $("fServicio").scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+
       async function pintarUsuariasSelect() {
         const datos = await api("/api/admin/usuarias");
         const select = $("logroUsuaria");
@@ -1454,6 +1720,8 @@
             pintarAlertasAdmin(),
             pintarProfesionales(),
             pintarLogros(),
+            pintarServiciosMapa(),
+            pintarFiltrosServicios(),
             pintarUsuariasSelect(),
           ]);
         } catch (e) {
@@ -1601,6 +1869,84 @@
       };
 
       /* =========================================================
+       SERVICIOS DEL MAPA
+       ========================================================= */
+      $("fServicio").onsubmit = async (ev) => {
+        ev.preventDefault();
+
+        const id = $("sId").value;
+        const editando = Boolean(id);
+        const error = $("eServicio");
+        const mensaje = $("servicioMsg");
+        const boton = $("btnGuardarServicio");
+
+        error.textContent = "";
+        mensaje.textContent = "";
+
+        const datos = {
+          nombre: $("sNombre").value.trim(),
+          categoria: $("sCategoria").value.trim(),
+          ciudad: $("sCiudad").value.trim(),
+          direccion: $("sDireccion").value.trim(),
+          telefono: $("sTelefono").value.trim(),
+          horario: $("sHorario").value.trim(),
+          descripcion: $("sDescripcion").value.trim(),
+          web: $("sWeb").value.trim(),
+        };
+
+        if (
+          !datos.nombre ||
+          !datos.categoria ||
+          !datos.ciudad ||
+          !datos.direccion
+        ) {
+          error.textContent =
+            "Completa el nombre, la categoría, la ciudad y la dirección.";
+          return;
+        }
+
+        boton.disabled = true;
+        boton.textContent = "UBICANDO...";
+
+        try {
+          const respuesta = await api(
+            "/api/admin/servicios-mapa" + (editando ? "/" + id : ""),
+            {
+              method: editando ? "PATCH" : "POST",
+              body: datos,
+            },
+          );
+
+          limpiarFormularioServicio();
+          mensaje.textContent = editando
+            ? "Servicio actualizado correctamente."
+            : "Servicio agregado al mapa correctamente.";
+
+          if (respuesta && respuesta.referencia) {
+            mensaje.textContent +=
+              " Ubicación aproximada: " + respuesta.referencia;
+          }
+
+          await Promise.all([
+            pintarServiciosMapa(),
+            pintarFiltrosServicios(),
+          ]);
+        } catch (e) {
+          error.textContent = e.status ? e.message : SIN_CONEXION;
+        } finally {
+          boton.disabled = false;
+          boton.textContent = $("sId").value
+            ? "GUARDAR CAMBIOS"
+            : "AGREGAR AL MAPA";
+        }
+      };
+
+      $("cancelarServicio").onclick = () => {
+        limpiarFormularioServicio();
+        $("servicioMsg").textContent = "";
+      };
+
+      /* =========================================================
        ACCIONES
        ========================================================= */
       document.addEventListener("click", async (e) => {
@@ -1648,6 +1994,18 @@
               method: "PATCH",
               body: { activo: b.dataset.activo !== "1" },
             });
+
+          if (a === "editarServicio") {
+            editarServicioMapa(id);
+            return;
+          }
+
+          if (a === "borrarServicio") {
+            if (!confirm("¿Eliminar este servicio del mapa?")) return;
+            await api("/api/admin/servicios-mapa/" + id, {
+              method: "DELETE",
+            });
+          }
 
           if (a === "borrarT") {
             if (!confirm("¿Eliminar este testimonio de forma definitiva?"))
