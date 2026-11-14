@@ -2313,17 +2313,14 @@ html[data-contrast="1"] .selia-card {
   flex-wrap: wrap;
   padding: 32px;
   border-radius: var(--r);
-  background: linear-gradient(135deg, var(--morado-800), var(--morado-600));
+  background: linear-gradient(135deg, #8f2712, #b3361a);
   color: #fff;
-  box-shadow: 0 10px 30px #4a226033;
+  box-shadow: 0 10px 30px #b3361a33;
 }
 
-.emergency-card h2 {
-  color: #fff;
-}
-
+.emergency-card h2,
 .emergency-card .eyebrow {
-  color: var(--turquesa-100);
+  color: #fff;
 }
 
 .emergency-card p {
@@ -2331,15 +2328,19 @@ html[data-contrast="1"] .selia-card {
 }
 
 .emergency-btn {
-  background: var(--turquesa-500);
-  border-color: var(--turquesa-500);
-  color: var(--morado-900);
+  background: #b3361a;
+  border-color: #fff;
+  color: #fff;
   white-space: nowrap;
 }
 
+.emergency-card .btn.emergency-btn {
+  color: #fff;
+}
+
 .emergency-btn:hover {
-  background: var(--turquesa-300);
-  border-color: var(--turquesa-300);
+  background: #8f2712;
+  border-color: #fff;
 }
 
 .emergency-fab {
@@ -2347,9 +2348,9 @@ html[data-contrast="1"] .selia-card {
   right: 18px;
   bottom: calc(18px + env(safe-area-inset-bottom, 0px));
   z-index: 90;
-  border: 2px solid var(--morado-200);
+  border: 2px solid #fff;
   border-radius: 999px;
-  background: var(--morado-800);
+  background: #b3361a;
   color: #fff;
   padding: 13px 19px;
   font: 800 1rem Nunito, sans-serif;
@@ -2358,7 +2359,7 @@ html[data-contrast="1"] .selia-card {
 }
 
 .emergency-fab:hover {
-  background: var(--morado-700);
+  background: #8f2712;
   transform: translateY(-2px);
 }
 
