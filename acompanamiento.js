@@ -223,6 +223,7 @@ const cargarProfesionales = async () => {
         profesional_id: profesional.id,
         profesional: profesional.nombre,
         especialidad: profesional.especialidad,
+        disponible_ahora: profesional.disponible_ahora,
       });
     };
 
@@ -553,6 +554,25 @@ const leerChatPrueba = () => {
 const esChatPrueba = () =>
   Boolean(state.chat && state.chat.profesional_id === CHAT_PRUEBA_ID);
 
+const actualizarEstadoChat = (disponible) => {
+  const estado = $("#chatEstado");
+  if (!estado) return;
+
+  if (!state.chat || state.chat.prueba) {
+    estado.hidden = true;
+    estado.textContent = "";
+    estado.className = "chat-status";
+    return;
+  }
+
+  const enLinea = disponible === true;
+  estado.hidden = false;
+  estado.className = "chat-status " + (enLinea ? "online" : "offline");
+  estado.textContent = enLinea
+    ? "En línea ahora. Puedes escribirle."
+    : "No está conectada en este momento. Puedes dejar tu mensaje; lo verá cuando se conecte.";
+};
+
 const crearConversacionPrueba = () => {
   const mensajes = leerChatPrueba();
   const ultimo = mensajes[mensajes.length - 1];
@@ -567,6 +587,9 @@ const crearConversacionPrueba = () => {
   };
 };
 
+const RESPUESTA_DERIVAR =
+  "En este momento no tengo una respuesta automática para eso. Para recibir una orientación más personalizada, contacta a una profesional desde la pestaña Mensajes o agenda una cita en la pestaña Citas. Si estás en peligro inmediato, llama al 123 o usa el botón Ayuda.";
+
 const respuestaChatPrueba = (texto) => {
   const t = texto.toLowerCase();
 
@@ -575,30 +598,54 @@ const respuestaChatPrueba = (texto) => {
       t,
     )
   ) {
-    return "Si estás en peligro inmediato, llama al 123 o usa el botón Ayuda. No estás sola. Si puedes, busca a una persona de confianza y permanece a su lado mientras llega la ayuda.";
+    return {
+      tipo: "emergencia",
+      texto:
+        "Si estás en peligro inmediato, llama al 123 o usa el botón Ayuda. No estás sola. Si puedes, busca a una persona de confianza y permanece a su lado mientras llega la ayuda.",
+    };
   }
 
   if (/(ansiedad|ansios|nervios|pánico|panico|respir|angustia)/.test(t)) {
-    return "Gracias por decírmelo. Puedes probar ahora una respiración lenta: inhala 4 segundos, sostén 4 y exhala 6. Repítelo cinco veces. Si la ansiedad sigue siendo muy intensa, cuéntaselo a una profesional en tu próxima cita.";
+    return {
+      tipo: "auto",
+      texto:
+        "Gracias por decírmelo. Puedes probar ahora una respiración lenta: inhala 4 segundos, sostén 4 y exhala 6. Repítelo cinco veces. Si la ansiedad sigue siendo muy intensa, cuéntaselo a una profesional en tu próxima cita.",
+    };
   }
 
   if (/(triste|sola|solo|llorar|deprim|vacío|vacio|desanimada)/.test(t)) {
-    return "Siento que estés pasando por eso. No tienes que resolverlo toda sola: puedes escribir en el Diario emocional cómo te sientes y, si quieres, contárselo a una profesional en el chat o en una cita.";
+    return {
+      tipo: "auto",
+      texto:
+        "Siento que estés pasando por eso. No tienes que resolverlo toda sola: puedes escribir en el Diario emocional cómo te sientes y, si quieres, contárselo a una profesional en el chat o en una cita.",
+    };
   }
 
   if (/(cita|agendar|horario|disponibilidad)/.test(t)) {
-    return "Puedes agendar desde la pestaña Citas. Elige una profesional, revisa sus horarios disponibles y reserva el que mejor te sirva. La cita queda pendiente hasta que ella la confirme.";
+    return {
+      tipo: "auto",
+      texto:
+        "Puedes agendar desde la pestaña Citas. Elige una profesional, revisa sus horarios disponibles y reserva el que mejor te sirva. La cita queda pendiente hasta que ella la confirme.",
+    };
   }
 
   if (/(gracias|agradezco)/.test(t)) {
-    return "Con gusto. Estoy aquí para acompañarte. Si quieres, podemos seguir hablando o puedes escribirle a una profesional.";
+    return {
+      tipo: "auto",
+      texto:
+        "Con gusto. Estoy aquí para acompañarte. Si quieres, podemos seguir hablando o puedes escribirle a una profesional.",
+    };
   }
 
   if (/(hola|buenas|buenos días|buenas tardes|buenas noches)/.test(t)) {
-    return "Hola, qué bueno que estés aquí. ¿Cómo te sientes hoy y qué te gustaría compartir?";
+    return {
+      tipo: "auto",
+      texto:
+        "Hola, qué bueno que estés aquí. ¿Cómo te sientes hoy y qué te gustaría compartir?",
+    };
   }
 
-  return "Te escucho. ¿Quieres contarme un poco más sobre lo que te pasa o prefieres que te comparta una opción de apoyo?";
+  return { tipo: "derivar", texto: RESPUESTA_DERIVAR };
 };
 
 const cargarConversaciones = async () => {
@@ -664,11 +711,13 @@ const abrirConversacion = async (conversacion) => {
     profesional_id: conversacion.profesional_id,
     profesional: conversacion.profesional,
     especialidad: conversacion.especialidad,
+    disponible_ahora: conversacion.disponible_ahora,
     prueba: esPrueba,
   };
 
   $("#chatNombre").textContent = conversacion.profesional;
   $("#chatEspecialidad").textContent = conversacion.especialidad || "";
+  actualizarEstadoChat(conversacion.disponible_ahora);
   $("#reiniciarChatPrueba").hidden = !esPrueba;
   $("#textoMensaje").disabled = false;
   $("#textoMensaje").placeholder = esPrueba
@@ -726,6 +775,10 @@ const cargarMensajes = async (profesionalId, silencioso) => {
   }
 
   const datos = await api("/api/mensajes/" + profesionalId);
+  if (datos.profesional) {
+    state.chat.disponible_ahora = datos.profesional.disponible_ahora;
+    actualizarEstadoChat(datos.profesional.disponible_ahora);
+  }
   pintarMensajes(datos.mensajes || [], silencioso);
 };
 
@@ -769,11 +822,23 @@ $("#formMensaje").onsubmit = async (evento) => {
         if (version !== versionChatPrueba) return;
 
         const actuales = leerChatPrueba();
+        const respuesta = respuestaChatPrueba(texto);
+        let textoRespuesta = respuesta.texto;
+
+        // Si la misma respuesta ya se dio antes, se deriva a una profesional.
+        if (respuesta.tipo === "auto") {
+          const yaRespondida = actuales.some(
+            (mensaje) =>
+              mensaje.remitente === "profesional" &&
+              mensaje.texto === respuesta.texto,
+          );
+          if (yaRespondida) textoRespuesta = RESPUESTA_DERIVAR;
+        }
 
         actuales.push({
           id: "prueba-" + Date.now(),
           remitente: "profesional",
-          texto: respuestaChatPrueba(texto),
+          texto: textoRespuesta,
           creado_en: ahoraUTC(),
         });
 
@@ -785,13 +850,18 @@ $("#formMensaje").onsubmit = async (evento) => {
         }
       }, 800);
     } else {
-      await api("/api/mensajes", {
+      const resultado = await api("/api/mensajes", {
         method: "POST",
         body: {
           profesional_id: state.chat.profesional_id,
           texto,
         },
       });
+
+      if (resultado && typeof resultado.disponible_ahora === "boolean") {
+        state.chat.disponible_ahora = resultado.disponible_ahora;
+        actualizarEstadoChat(resultado.disponible_ahora);
+      }
 
       $("#textoMensaje").value = "";
       await cargarMensajes(state.chat.profesional_id, false);

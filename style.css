@@ -2012,6 +2012,36 @@ html[data-contrast="1"] .selia-card {
   margin: 2px 0 0;
 }
 
+.chat-status {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 10px 18px;
+  border-bottom: 2px solid var(--line);
+  background: var(--soft);
+  color: var(--petrol);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.chat-status::before {
+  content: "●";
+  margin-right: 8px;
+}
+
+.chat-status.online {
+  background: var(--turquesa-50);
+  color: var(--turquesa-800);
+}
+
+.chat-status.offline {
+  background: var(--morado-100);
+  color: var(--morado-800);
+}
+
+.chat-status[hidden] {
+  display: none;
+}
+
 .chat-messages {
   flex: 1;
   max-height: 420px;
