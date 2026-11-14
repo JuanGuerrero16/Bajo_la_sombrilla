@@ -107,13 +107,19 @@ const cargarLineas = async () => {
     enlace.setAttribute("aria-label", `Llamar a ${linea.nombre}`);
     grid.appendChild(card);
 
-    modal.appendChild(
-      H("a", {
+    const enlaceModal = H(
+      "a",
+      {
         className: "emergency-line",
         href: `tel:${numero}`,
-        innerHTML: `<strong>${esc(linea.nombre)}</strong><span>${esc(linea.descripcion || "")}</span><b>${esc(linea.numero)}</b>`,
-      }),
+      },
+      `<strong>${esc(linea.nombre)}</strong><span>${esc(linea.descripcion || "")}</span><b>${esc(linea.numero)}</b>`,
     );
+    enlaceModal.setAttribute(
+      "aria-label",
+      `Llamar a ${linea.nombre}: ${linea.numero}`,
+    );
+    modal.appendChild(enlaceModal);
   });
 };
 
