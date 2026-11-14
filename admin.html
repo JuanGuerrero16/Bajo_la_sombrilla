@@ -704,9 +704,10 @@
           <!-- Servicios del mapa -->
           <div id="tab-mapa" hidden>
             <p class="notice">
-              Agrega servicios al mapa público. Escribe la dirección y la
-              ciudad, usa <strong>UBICAR DIRECCIÓN</strong> para revisar el
-              punto y ajústalo en el mapa si hace falta.
+              Haz clic en el mapa para ubicar el servicio manualmente. Si
+              quieres, escribe la dirección y usa
+              <strong>UBICAR DIRECCIÓN</strong> para centrarlo; luego ajusta el
+              marcador.
             </p>
 
             <form class="card admin-form mapa-form" id="fServicio" novalidate>
@@ -814,19 +815,20 @@
               </div>
 
               <p class="hint" id="sUbicacionAyuda">
-                La dirección y la ciudad se usan para ubicar el servicio en el
-                mapa. Después de ubicarla, puedes arrastrar el marcador o hacer
-                clic en el mapa para ajustar el punto exacto.
+                Haz clic en el mapa para colocar el marcador. Puedes arrastrarlo
+                o hacer clic de nuevo para ajustar el punto exacto. La dirección
+                y la ciudad son opcionales para centrar el mapa.
               </p>
 
               <div
                 id="mapaServicio"
                 class="mapa-servicio"
-                aria-label="Vista previa para ajustar la ubicación del servicio"
-                hidden
+                aria-label="Mapa para elegir la ubicación del servicio"
               ></div>
 
-              <p class="hint" id="sUbicacionEstado" role="status"></p>
+              <p class="hint" id="sUbicacionEstado" role="status">
+                Haz clic en el mapa para ubicar el servicio.
+              </p>
 
               <div class="err" id="eServicio" role="alert"></div>
 
@@ -1142,6 +1144,10 @@
           if (b.dataset.tab === "est" && EST) {
             setTimeout(() => pintarGraficas(EST), 30);
           }
+
+          if (b.dataset.tab === "mapa") {
+            setTimeout(() => inicializarMapaServicio(), 30);
+          }
         };
       });
 
@@ -1153,6 +1159,11 @@
       let SERVICIOS_MAPA_ADMIN = [];
       let mapaServicio = null;
       let marcadorServicio = null;
+
+      const CENTRO_MAPA_SERVICIO = [4.65, -74.07];
+      const ZOOM_MAPA_SERVICIO = 6;
+      const TEXTO_UBICACION_INICIAL =
+        "Haz clic en el mapa para ubicar el servicio.";
 
       const CATEGORIAS_MAPA = [
         "Fundaciones",
@@ -1689,6 +1700,31 @@
           .join("");
       }
 
+      function crearMapaServicio() {
+        if (mapaServicio) return;
+
+        mapaServicio = L.map($("mapaServicio"), {
+          center: CENTRO_MAPA_SERVICIO,
+          zoom: ZOOM_MAPA_SERVICIO,
+          scrollWheelZoom: true,
+        });
+
+        L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom: 19,
+          attribution:
+            '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>',
+        }).addTo(mapaServicio);
+
+        mapaServicio.on("click", (evento) => {
+          colocarMarcadorServicio(evento.latlng.lat, evento.latlng.lng);
+        });
+      }
+
+      function inicializarMapaServicio() {
+        crearMapaServicio();
+        setTimeout(() => mapaServicio.invalidateSize(), 80);
+      }
+
       function fijarUbicacionServicio(lat, lng) {
         const nLat = Number(lat);
         const nLng = Number(lng);
@@ -1701,27 +1737,14 @@
           "Arrastra el marcador o haz clic en el mapa para ajustarla.";
       }
 
-      function mostrarMapaServicio(lat, lng) {
+      function colocarMarcadorServicio(lat, lng, centrar = false) {
         const nLat = Number(lat);
         const nLng = Number(lng);
         if (!Number.isFinite(nLat) || !Number.isFinite(nLng)) return;
 
-        const contenedor = $("mapaServicio");
-        contenedor.hidden = false;
+        crearMapaServicio();
 
-        if (!mapaServicio) {
-          mapaServicio = L.map(contenedor, {
-            center: [nLat, nLng],
-            zoom: 16,
-            scrollWheelZoom: true,
-          });
-
-          L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-            maxZoom: 19,
-            attribution:
-              '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>',
-          }).addTo(mapaServicio);
-
+        if (!marcadorServicio) {
           marcadorServicio = L.marker([nLat, nLng], {
             draggable: true,
           }).addTo(mapaServicio);
@@ -1730,35 +1753,49 @@
             const punto = marcadorServicio.getLatLng();
             fijarUbicacionServicio(punto.lat, punto.lng);
           });
-
-          mapaServicio.on("click", (evento) => {
-            marcadorServicio.setLatLng(evento.latlng);
-            fijarUbicacionServicio(evento.latlng.lat, evento.latlng.lng);
-          });
         } else {
-          mapaServicio.setView([nLat, nLng], 16);
           marcadorServicio.setLatLng([nLat, nLng]);
         }
 
+        if (centrar) mapaServicio.setView([nLat, nLng], 16);
+
         fijarUbicacionServicio(nLat, nLng);
-        setTimeout(() => mapaServicio.invalidateSize(), 80);
+        setTimeout(() => mapaServicio.invalidateSize(), 30);
       }
 
-      function invalidarUbicacionServicio() {
+      function mostrarMapaServicio(lat, lng) {
+        colocarMarcadorServicio(lat, lng, true);
+      }
+
+      function limpiarMapaServicio() {
+        if (mapaServicio && marcadorServicio) {
+          mapaServicio.removeLayer(marcadorServicio);
+        }
+
+        marcadorServicio = null;
         $("sLat").value = "";
         $("sLng").value = "";
-        $("mapaServicio").hidden = true;
+        $("sUbicacionEstado").textContent = TEXTO_UBICACION_INICIAL;
+
+        if (mapaServicio) {
+          mapaServicio.setView(CENTRO_MAPA_SERVICIO, ZOOM_MAPA_SERVICIO);
+        }
+      }
+
+      function sugerirActualizarUbicacionServicio() {
+        if (!$("sLat").value || !$("sLng").value) {
+          $("sUbicacionEstado").textContent = TEXTO_UBICACION_INICIAL;
+          return;
+        }
+
         $("sUbicacionEstado").textContent =
-          "La dirección cambió. Vuelve a ubicarla para ajustar el punto en el mapa.";
+          "La dirección cambió. Si quieres, usa UBICAR DIRECCIÓN o mueve el marcador para actualizar el punto.";
       }
 
       function limpiarFormularioServicio() {
         $("fServicio").reset();
         $("sId").value = "";
-        $("sLat").value = "";
-        $("sLng").value = "";
-        $("mapaServicio").hidden = true;
-        $("sUbicacionEstado").textContent = "";
+        limpiarMapaServicio();
         $("tituloServicio").textContent = "Agregar servicio al mapa";
         $("btnGuardarServicio").textContent = "AGREGAR AL MAPA";
         $("cancelarServicio").hidden = true;
@@ -1789,10 +1826,7 @@
         if (Number.isFinite(Number(s.lat)) && Number.isFinite(Number(s.lng))) {
           mostrarMapaServicio(s.lat, s.lng);
         } else {
-          $("sLat").value = "";
-          $("sLng").value = "";
-          $("mapaServicio").hidden = true;
-          $("sUbicacionEstado").textContent = "";
+          limpiarMapaServicio();
         }
 
         $("fServicio").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -1981,8 +2015,14 @@
       /* =========================================================
        SERVICIOS DEL MAPA
        ========================================================= */
-      $("sDireccion").addEventListener("input", invalidarUbicacionServicio);
-      $("sCiudad").addEventListener("input", invalidarUbicacionServicio);
+      $("sDireccion").addEventListener(
+        "input",
+        sugerirActualizarUbicacionServicio,
+      );
+      $("sCiudad").addEventListener(
+        "input",
+        sugerirActualizarUbicacionServicio,
+      );
 
       $("ubicarServicio").onclick = async () => {
         const error = $("eServicio");
@@ -2062,8 +2102,18 @@
           return;
         }
 
+        if (datos.lat === null || datos.lng === null) {
+          error.textContent =
+            "Haz clic en el mapa para ubicar el servicio o usa UBICAR DIRECCIÓN.";
+          $("mapaServicio").scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+          return;
+        }
+
         boton.disabled = true;
-        boton.textContent = "UBICANDO...";
+        boton.textContent = "GUARDANDO...";
 
         try {
           const respuesta = await api(
