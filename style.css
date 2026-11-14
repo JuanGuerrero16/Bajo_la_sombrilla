@@ -1613,7 +1613,7 @@ html:not([data-contrast="1"]) .module-hero {
   justify-content: space-between;
   gap: 24px;
   flex-wrap: wrap;
-  margin: 34px 0 40px;
+  margin: 44px 0 56px;
   padding: 24px 26px;
   border: 2px solid var(--turquesa-500);
   border-left: 6px solid var(--turquesa-500);
@@ -1649,7 +1649,7 @@ html[data-contrast="1"] .selia-card {
 @media (max-width: 600px) {
   .selia-card {
     align-items: flex-start;
-    margin: 28px 0 36px;
+    margin: 32px 0 44px;
     padding: 20px;
   }
 
