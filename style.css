@@ -682,7 +682,7 @@ header .wrap {
       rgba(247, 243, 248, 0.62) 70%,
       rgba(247, 243, 248, 0.16) 100%
     ),
-    url("hero-mujeres.jpeg") center 32% / cover no-repeat;
+    url("images/hero-mujeres.jpeg") center 32% / cover no-repeat;
 }
 
 .hero::after {
@@ -803,7 +803,7 @@ header .wrap {
         rgba(247, 243, 248, 0.9) 45%,
         rgba(247, 243, 248, 0.55) 100%
       ),
-      url("hero-mujeres.jpeg") 52% 18% / cover no-repeat;
+      url("images/hero-mujeres.jpeg") 52% 18% / cover no-repeat;
   }
 
   .hero-copy {

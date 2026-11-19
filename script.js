@@ -24,7 +24,7 @@ const API_URL =
 // Líneas de apoyo
 const apoyoData = [
   {
-    image: "linea-155.svg",
+    image: "images/linea-155.svg",
     imageAlt:
       "Logotipo circular de la Línea 155 de orientación a mujeres víctimas de violencia, con el número 155 y un teléfono móvil",
     title: "Línea nacional para orientación a mujeres",
@@ -325,7 +325,7 @@ $("#apoyoGrid").append(
     `
             <img
                 class="note-art"
-                src="apoyo-lineas.webp"
+                src="images/apoyo-lineas.webp"
                 alt="Ilustración de una mujer con audífonos rosados y los ojos cerrados, rodeada de hojas turquesas y moradas"
                 width="1254"
                 height="1254"
