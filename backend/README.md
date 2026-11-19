@@ -9,8 +9,9 @@
 
    ```sql
    CREATE DATABASE bajo_la_sombrilla;
-   CREATE USER sombrilla WITH ENCRYPTED PASSWORD 'pon-aqui-una-clave-segura';
-   GRANT ALL PRIVILEGES ON DATABASE bajo_la_sombrilla TO sombrilla;
+   CREATE USER 'sombrilla'@'localhost' IDENTIFIED BY 'pon-aqui-una-clave-segura';
+   GRANT ALL PRIVILEGES ON bajo_la_sombrilla.* TO 'sombrilla'@'localhost';
+   FLUSH PRIVILEGES;
    ```
 
    Las **tablas se crean solas** cuando arranca el servidor (están definidas en `schema.sql`).
